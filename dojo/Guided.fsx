@@ -93,7 +93,7 @@ let bigramify (text:string) =
     |> cleanseText
     |> split
     |> Seq.windowed 2
-    |> Seq.map (fun x -> sprintf "%s,%s" x.[0] x.[1])
+    //|> Seq.map (fun x -> sprintf "%s,%s" x.[0] x.[1])
     |> Seq.toArray
  
 let bigrams = bigramify sample
@@ -110,33 +110,18 @@ matches, and return all the next words in the
 selected bi-grams, in an array.
 *)
 
-// <useful bits of code for inspiration>
-
-// an array of pairs = arrays of integers
-let pairs = 
-    [| [| 1; 2 |]
-       [| 1; 3 |]
-       [| 4; 2 |] 
-    |]
-
-let endsWithTwo = 
-    pairs 
-    |> Seq.filter (fun pair -> pair.[1] = 2)
-    |> Seq.toArray
-
-let secondElements = 
-    pairs |> Array.map (fun pair -> pair.[1])
-
-// </useful bits of code for inspiration>
-
 // TODO: WRITE A FUNCTION 
 // let nextWords ... = ...
 // THAT RETURNS ALL WORDS FOLLOWING A GIVEN WORD.
 
 let nextWords (bigrams:string[] seq) (word:string) =
-    // [ YOUR CODE GOES HERE ]
-    [| "this"; "is"; "an"; "example" |]
-    
+    bigrams
+    |> Seq.filter (fun b -> b.[0] = word)
+    |> Seq.map (fun b -> b.[1])
+    |> Seq.distinct
+    |> Seq.toArray
+
+nextWords bigrams "I"
     
 (* 
 Chapter 3: Generating a "sentence"
