@@ -88,15 +88,18 @@ let cleanseText (text:string) =
 let split (text:string) =
     text.Split(' ')
 
-let bigramify (text:string) =
+let ngramify n (text:string) =
     text
     |> cleanseText
     |> split
-    |> Seq.windowed 2
-    //|> Seq.map (fun x -> sprintf "%s,%s" x.[0] x.[1])
+    |> Seq.windowed n
     |> Seq.toArray
- 
+
+let bigramify = ngramify 2
+let trigramify = ngramify 3
+
 let bigrams = bigramify sample
+let trigrams = trigramify sample
 
 (* 
 Chapter 2: Finding next word candidates
@@ -122,6 +125,27 @@ let nextWords (bigrams:string[] seq) (word:string) =
     |> Seq.toArray
 
 nextWords bigrams "I"
+
+//determines if the ngram matches the word sequence. returns true if the ngram matches the passed in words
+let isNgramMatch (ngram:string[]) (words:string[]) =
+    ngram
+    |> Seq.zip words
+    |> Seq.fold (fun acc elem -> 
+        let a, b = elem
+        acc && a = b)
+        true
+    
+let nNextWords (ngrams:string[] seq) (words:string[]) =
+    let lastWord (ngram:string[]) = ngram.[ngram.Length - 1]
+    ngrams
+    |> Seq.filter (fun b -> isNgramMatch b words)
+    |> Seq.map lastWord
+    |> Seq.distinct
+    |> Seq.toArray
+
+nextWords bigrams "I"
+nNextWords bigrams [| "I" |]
+nNextWords trigrams [| "I"; "see" |]
     
 (* 
 Chapter 3: Generating a "sentence"
@@ -142,24 +166,31 @@ being one option.
 // STARTING FROM AN INPUT WORD, PRODUCES A
 // SENTENCE BY APPENDING WORDS.
 
-let generateWords (sample:string) (firstWord:string) =
+let generateWords ngramSize (sample:string) (firstWords:string[]) =
     let rand = new System.Random()
-    let bigrams = bigramify sample
-    let nextWords = nextWords bigrams
+    let ngrams = ngramify ngramSize sample
+    let nextWords = nNextWords ngrams
 
-    let rec addWordToSentence sentence lastWord count =
-        let nextWordOptions = nextWords lastWord
+    let rec addWordToSentence sentence lastWords count =
+        let nextWordOptions = nextWords lastWords
         if nextWordOptions.Length = 0 || count = 0
             then sentence
             else
                 let idx = rand.Next() % nextWordOptions.Length
                 let nextWord = nextWordOptions.[idx]
                 let newSentence = sentence + " " + nextWord
-                addWordToSentence newSentence nextWord (count - 1)
+                let lastWords = Array.append (lastWords |> Array.skip 1) [| nextWord |]
+                addWordToSentence newSentence lastWords (count - 1)
+    
+    let sentence = firstWords |> String.concat " "
+    addWordToSentence sentence firstWords 1000
 
-    addWordToSentence firstWord firstWord 1000
+let bigramGenerateWords = generateWords 2
+let trigramGenerateWords = generateWords 2
 
-generateWords sample "hear"
+generateWords 2 sample [| "hear" |]
+generateWords 3 sample [| "I"; "see" |]
+generateWords 4 sample [| "I"; "see"; "skies" |]
 
 
 (* 
