@@ -135,31 +135,6 @@ word. There are many ways to do this, recursion
 being one option.
 *)
 
-// <useful bits of code for inspiration>
-
-// string concatenation
-let word1 = "hello"
-let word2 = "world"
-let concatenated = word1 + ", " + word2
-
-// a recursion example
-
-let repeatNtimes times word =
-    // create a recursive function
-    let rec repeatNtimes counter sentence =
-        if counter > times 
-        then sentence
-        else 
-            let updated = sentence + " " + word
-            repeatNtimes (counter+1) updated 
-    // call it, starting count at 1 and
-    // with an "empty sentence"
-    repeatNtimes 1 ""
-
-repeatNtimes 3 "Hello?"
-
-// </useful bits of code for inspiration>
-
 
 // TODO: WRITE A FUNCTION 
 // let generateWords ... = ...
@@ -168,11 +143,23 @@ repeatNtimes 3 "Hello?"
 // SENTENCE BY APPENDING WORDS.
 
 let generateWords (sample:string) (firstWord:string) =
-    // TODO
-    // 1. extract bi-grams from sample
-    // 2. recursively append words based
-    // on bi-grams, starting from firstWord
-    "not implemented yet!"
+    let rand = new System.Random()
+    let bigrams = bigramify sample
+    let nextWords = nextWords bigrams
+
+    let rec addWordToSentence sentence lastWord count =
+        let nextWordOptions = nextWords lastWord
+        if nextWordOptions.Length = 0 || count = 0
+            then sentence
+            else
+                let idx = rand.Next() % nextWordOptions.Length
+                let nextWord = nextWordOptions.[idx]
+                let newSentence = sentence + " " + nextWord
+                addWordToSentence newSentence nextWord (count - 1)
+
+    addWordToSentence firstWord firstWord 1000
+
+generateWords sample "hear"
 
 
 (* 
