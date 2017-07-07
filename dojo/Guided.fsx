@@ -26,6 +26,8 @@ words), and then suggest directions to
 explore further!
 *)
 
+open System.Text.RegularExpressions
+
 // Sample text: "What a Wonderful World"
 // http://en.wikipedia.org/wiki/What_a_Wonderful_World
 
@@ -67,27 +69,34 @@ consecutive words. For instance,
 - the,rainbow
 *)
 
-// <useful bits of code for inspiration>
-
-let test = "the colors of the rainbow"
-test.Split ' '
-
-let numbers = [ 1 .. 10 ]
-let byFive =
-    numbers 
-    |> Seq.windowed 5 
-    |> Seq.toArray
-
-// </useful bits of code for inspiration> 
 
 // TODO: WRITE A FUNCTION 
 // let bigramify (text:string) = ...
 // THAT BREAKS A TEXT INTO AN ARRAY OF BIGRAMS
 
-let bigramify (text:string) =
-    // [ YOUR CODE GOES HERE ]
-    Array.empty<string[]>
 
+
+let regexReplace (regex:Regex) (text:string) =
+    regex.Replace(text, " ")
+
+let cleanseText (text:string) =
+    let regex = new Regex("[\s.,?]+")
+    let replace = regexReplace regex
+    let fullReplace = replace >> replace
+    text |> fullReplace
+
+let split (text:string) =
+    text.Split(' ')
+
+let bigramify (text:string) =
+    text
+    |> cleanseText
+    |> split
+    |> Seq.windowed 2
+    |> Seq.map (fun x -> sprintf "%s,%s" x.[0] x.[1])
+    |> Seq.toArray
+ 
+let bigrams = bigramify sample
 
 (* 
 Chapter 2: Finding next word candidates
